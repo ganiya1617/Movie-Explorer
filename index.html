@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movieees 🎬</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app">
+    <h1>Movieees 🎬</h1>
+
+    <input id="searchInput" placeholder="Search movies..." />
+    <button onclick="fetchMovies()">Search</button>
+
+    <p id="loading" style="display:none;">Loading movies...</p>
+
+    <div id="movieGrid" class="grid"></div>
+
+    <div id="details" class="details"></div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+</html>
