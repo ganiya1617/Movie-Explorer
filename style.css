@@ -3,28 +3,54 @@ body {
   font-family: Arial;
   background: #111;
   color: white;
-  text-align: center;
 }
 
-input, button {
-  padding: 10px;
-  margin: 10px;
-}
-
-.grid {
+/* Layout */
+.container {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #1a1a1a;
+  padding: 20px;
+  height: 100vh;
+}
+
+.sidebar input,
+.sidebar select,
+.sidebar button {
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+#search {
+  padding: 10px;
+  width: 300px;
+}
+
+/* Movies */
+#movies {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
 }
 
 .card {
   background: #222;
-  margin: 10px;
   padding: 10px;
-  width: 150px;
-  cursor: pointer;
+  border-radius: 8px;
 }
 
-.details {
-  margin-top: 20px;
+.card img {
+  width: 100%;
 }

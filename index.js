@@ -1,84 +1,117 @@
-const API_KEY = "8e2f4d36";
+const API_KEY = "43de8ff65f6ff177a1547c3f54cc67c7";
+const BASE_URL = "https://api.themoviedb.org/3";
+const IMG = "https://image.tmdb.org/t/p/w500";
 
-const grid = document.getElementById("movieGrid");
-const details = document.getElementById("details");
-const loading = document.getElementById("loading");
+// DOM
+const searchInput = document.getElementById("search");
+const yearInput = document.getElementById("year");
+const ratingInput = document.getElementById("rating");
+const ratingValue = document.getElementById("ratingValue");
+const sortInput = document.getElementById("sort");
+const genreInput = document.getElementById("genre");
+const applyBtn = document.getElementById("apply");
+const moviesDiv = document.getElementById("movies");
 
-window.onload = () => {
-  fetchTrending();
-};
+// 🎯 Show rating value
+ratingInput.addEventListener("input", () => {
+  ratingValue.textContent = ratingInput.value;
+});
 
-async function fetchTrending() {
-  loading.style.display = "block";
+// 🎬 Fetch Genres
+async function fetchGenres() {
+  try {
+    const res = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`);
+    const data = await res.json();
 
-  const res = await fetch(
-    `https://www.omdbapi.com/?s=avengers&apikey=${API_KEY}`
-  );
-  const data = await res.json();
+    data.genres.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g.id;
+      opt.textContent = g.name;
+      genreInput.appendChild(opt);
+    });
 
-  if (data.Response === "True") {
-    displayMovies(data.Search);
+  } catch (err) {
+    console.error("Genre error:", err);
   }
-
-  loading.style.display = "none";
 }
 
-async function fetchMovies() {
-  const search = document.getElementById("searchInput").value;
-  if (!search) return;
+// 🎬 Fetch Movies
+async function fetchMovies(type = "filter") {
+  let url;
 
-  loading.style.display = "block";
+  const search = searchInput.value.trim();
+  const year = yearInput.value;
+  const rating = ratingInput.value;
+  const sort = sortInput.value;
+  const genre = genreInput.value;
 
-  const res = await fetch(
-    `https://www.omdbapi.com/?s=${search}&apikey=${API_KEY}`
-  );
-  const data = await res.json();
+  try {
+    // 🔍 SEARCH MODE
+    if (type === "search") {
+      if (!search) return;
+      url = `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${search}`;
+    }
 
-  if (data.Response === "True") {
-    displayMovies(data.Search);
-  } else {
-    grid.innerHTML = "<p>No movies found</p>";
+    // 🎯 FILTER MODE
+    else {
+      url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&sort_by=${sort}`;
+
+      if (year) url += `&primary_release_year=${year}`;
+      if (rating > 0) url += `&vote_average.gte=${rating}`;
+      if (genre) url += `&with_genres=${genre}`;
+    }
+
+    console.log("Fetching:", url);
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    displayMovies(data.results || []);
+
+  } catch (err) {
+    console.error("Movie fetch error:", err);
+    moviesDiv.innerHTML = "<h2>Error loading movies</h2>";
   }
-
-  loading.style.display = "none";
 }
 
+// 🎬 Display Movies
 function displayMovies(movies) {
-  grid.innerHTML = "";
-  details.innerHTML = "";
+  moviesDiv.innerHTML = "";
+
+  if (movies.length === 0) {
+    moviesDiv.innerHTML = "<h2>No movies found</h2>";
+    return;
+  }
 
   movies.forEach(movie => {
-    const card = document.createElement("div");
-    card.className = "card";
+    const div = document.createElement("div");
+    div.classList.add("card");
 
-    card.innerHTML = `
-      <img src="${
-        movie.Poster !== "N/A"
-          ? movie.Poster
-          : "https://via.placeholder.com/150"
-      }" />
-      <h3>${movie.Title}</h3>
-      <p>${movie.Year}</p>
+    div.innerHTML = `
+      <img src="${movie.poster_path ? IMG + movie.poster_path : ''}">
+      <h4>${movie.title}</h4>
+      <p>⭐ ${movie.vote_average}</p>
     `;
 
-    card.onclick = () => fetchDetails(movie.imdbID);
-
-    grid.appendChild(card);
+    moviesDiv.appendChild(div);
   });
 }
 
-async function fetchDetails(id) {
-  const res = await fetch(
-    `https://www.omdbapi.com/?i=${id}&plot=full&apikey=${API_KEY}`
-  );
-  const movie = await res.json();
+// 🎯 Apply Filters Button
+applyBtn.addEventListener("click", () => {
+  searchInput.value = "";   // clear search
+  fetchMovies("filter");
+});
 
-  details.innerHTML = `
-    <h2>${movie.Title}</h2>
-    <img src="${movie.Poster}" width="200" />
-    <p><b>Year:</b> ${movie.Year}</p>
-    <p><b>Genre:</b> ${movie.Genre}</p>
-    <p><b>Plot:</b> ${movie.Plot}</p>
-    <p><b>Rating:</b> ⭐ ${movie.imdbRating}</p>
-  `;
-}
+// 🔍 Search on Enter
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    fetchMovies("search");
+  }
+});
+
+// 🚀 Initial Load
+window.onload = () => {
+  fetchGenres();
+  fetchMovies("filter");
+};
